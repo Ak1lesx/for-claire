@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A little something</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --night-top: #0c0f24;
+            --night-bottom: #2a1b3d;
+            --gold: #ffc93c;
+            --amber: #f29f05;
+            --seed: #3d2410;
+            --leaf: #3f7d3a;
+            --leaf-dark: #2b5a2a;
+            --paper: #fbf3df;
+            --ink: #3b2a1c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            height: 100%;
+        }
+        
+        body {
+            font-family: "Fraunces", Georgia, serif;
+            background: var(--night-top);
+            color: #fff;
+            overflow: hidden;
+        }
+        /* ---------- LOCK SCREEN ---------- */
+        
+        #lock {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: radial-gradient(ellipse at 50% 40%, #ff8fb1 0%, var(--night-top) 70%);
+            transition: opacity 1s ease, visibility 1s;
+        }
+        
+        #lock.open {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .lock-card {
+            width: min(380px, 100%);
+            text-align: center;
+        }
+        
+        .photos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        
+        .photos img {
+            width: 30%;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            border: 6px solid #fff;
+            border-bottom-width: 20px;
+            border-radius: 3px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .photos img:nth-child(odd) {
+            transform: rotate(-4deg);
+        }
+        
+        .photos img:nth-child(even) {
+            transform: rotate(3deg) translateY(-6px);
+        }
+        
+        #polaroids {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .polaroid {
+            position: absolute;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            border: 5px solid #fff;
+            border-bottom-width: 18px;
+            border-radius: 3px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            animation: fadeIn 1.2s ease forwards;
+        }
+        
+        .lock-card {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .lock-card h1 {
+            font-size: clamp(28px, 6vw, 38px);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+        
+        .lock-card p.hint {
+            font-family: "Caveat", cursive;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 26px;
+        }
+        
+        .lock-card input {
+            width: 100%;
+            padding: 14px 16px;
+            font: 600 22px "Fraunces", serif;
+            letter-spacing: 0.35em;
+            text-align: center;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(255, 201, 60, 0.4);
+            border-radius: 14px;
+            outline: none;
+            transition: border-color .2s, background .2s;
+        }
+        
+        .lock-card input:focus {
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.11);
+        }
+        
+        .lock-card button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 14px;
+            font: 700 18px "Fraunces", serif;
+            color: var(--seed);
+            background: #ffffff;
+            border: 0;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform .15s, background .2s;
+        }
+        
+        .lock-card button:hover {
+            background: #f0f0f0;
+        }
+        
+        .lock-card button:active {
+            transform: scale(0.98);
+        }
+        
+        .lock-card button:focus-visible,
+        .lock-card input:focus-visible {
+            outline: 3px solid #fff;
+            outline-offset: 3px;
+        }
+        
+        #error {
+            min-height: 26px;
+            margin-top: 14px;
+            font-size: 16px;
+            color: #ff9c8a;
+        }
+        
+        .shake {
+            animation: shake .45s;
+        }
+        
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-10px);
+            }
+            40% {
+                transform: translateX(10px);
+            }
+            60% {
+                transform: translateX(-6px);
+            }
+            80% {
+                transform: translateX(6px);
+            }
+        }
+        /* ---------- SCENE ---------- */
+        
+        #scene {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, var(--night-top) 0%, var(--night-bottom) 65%, #6b3a3a 100%);
+            visibility: hidden;
+        }
+        
+        #scene.show {
+            visibility: visible;
+        }
+        
+        .moon {
+            position: absolute;
+            top: 8%;
+            right: 12%;
+            width: clamp(50px, 8vw, 90px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff8dc, #f3dfa2);
+            box-shadow: 0 0 60px 18px rgba(255, 235, 170, 0.25);
+            opacity: 0;
+        }
+        
+        #scene.show .moon {
+            animation: fadeIn 3s .3s forwards;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0;
+        }
+        
+        #scene.show .star {
+            animation: twinkle 3s var(--t) infinite;
+        }
+        
+        @keyframes twinkle {
+            0%,
+            100% {
+                opacity: .1;
+            }
+            50% {
+                opacity: .9;
+            }
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .ground {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 14vh;
+            background: linear-gradient(to bottom, #2b3a1e, #141c0e);
+            border-top-left-radius: 50% 30%;
+            border-top-right-radius: 50% 30%;
+            z-index: 2;
+        }
+        
+        #garden {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+        /* ---------- SUNFLOWER ---------- */
+        
+        .sunflower {
+            position: absolute;
+            bottom: 9vh;
+            left: var(--x);
+            width: 0;
+            height: var(--h);
+            transform-origin: bottom center;
+        }
+        
+        #scene.show .sunflower {
+            animation: sway 6s ease-in-out calc(var(--d) + 3s) infinite alternate;
+        }
+        
+        @keyframes sway {
+            from {
+                transform: rotate(-1.8deg);
+            }
+            to {
+                transform: rotate(1.8deg);
+            }
+        }
+        
+        .stem {
+            position: absolute;
+            bottom: 0;
+            left: -5px;
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to right, var(--leaf-dark), var(--leaf), var(--leaf-dark));
+            border-radius: 5px;
+            transform-origin: bottom center;
+            transform: scaleY(0);
+        }
+        
+        #scene.show .stem {
+            animation: grow 2.6s cubic-bezier(.3, .7, .3, 1) var(--d) forwards;
+        }
+        
+        @keyframes grow {
+            to {
+                transform: scaleY(1);
+            }
+        }
+        
+        .leaf {
+            position: absolute;
+            width: calc(var(--s) * 0.42);
+            height: calc(var(--s) * 0.24);
+            background: linear-gradient(135deg, #5aa14a, var(--leaf-dark));
+            border-radius: 0 100% 0 100%;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .leaf.l {
+            left: 0;
+            transform-origin: 100% 100%;
+            --flip: -1;
+        }
+        
+        .leaf.r {
+            left: 0;
+            transform-origin: 0 100%;
+            --flip: 1;
+        }
+        
+        #scene.show .leaf {
+            animation: leafIn 1.2s ease-out calc(var(--d) + var(--ld)) forwards;
+        }
+        
+        .leaf.l {
+            translate: -100% 0;
+        }
+        
+        .leaf.l {
+            border-radius: 100% 0 100% 0;
+            background: linear-gradient(225deg, #5aa14a, var(--leaf-dark));
+        }
+        
+        @keyframes leafIn {
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(var(--rot, 0deg));
+            }
+        }
+        
+        .head {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: var(--s);
+            height: var(--s);
+            margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+            transform: scale(0) rotate(-40deg);
+            filter: drop-shadow(0 0 14px rgba(255, 190, 50, 0.45));
+        }
+        
+        #scene.show .head {
+            animation: bloom 2.2s cubic-bezier(.2, 1.2, .4, 1) calc(var(--d) + 2.1s) forwards;
+        }
+        
+        @keyframes bloom {
+            to {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        .head svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #scene.show .head svg {
+            animation: spin 90s linear calc(var(--d) + 4.3s) infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* ---------- FIREFLIES ---------- */
+        
+        .fly {
+            position: absolute;
+            z-index: 3;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #ffe27a;
+            box-shadow: 0 0 10px 3px rgba(255, 226, 122, 0.7);
+            opacity: 0;
+        }
+        
+        #scene.show .fly {
+            animation: drift var(--dur) ease-in-out var(--fd) infinite;
+        }
+        
+        @keyframes drift {
+            0% {
+                opacity: 0;
+                transform: translate(0, 0);
+            }
+            15% {
+                opacity: 1;
+            }
+            50% {
+                transform: translate(var(--dx), -60px);
+            }
+            85% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(var(--dx) * -0.6), -140px);
+            }
+        }
+        /* ---------- ENVELOPE ---------- */
+        
+        #envelope {
+            position: fixed;
+            left: 50%;
+            bottom: 4vh;
+            z-index: 10;
+            transform: translate(-50%, 30px);
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 22px;
+            font: 700 26px "Caveat", cursive;
+            color: var(--seed);
+            background: var(--paper);
+            border: 0;
+            border-radius: 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+            cursor: pointer;
+            transition: opacity 1s, transform 1s;
+        }
+        
+        #envelope.ready {
+            opacity: 1;
+            transform: translate(-50%, 0);
+            pointer-events: auto;
+        }
+        
+        #envelope:hover {
+            background: #fff;
+        }
+        
+        #envelope:focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 4px;
+        }
+        
+        #envelope svg {
+            width: 30px;
+            height: 22px;
+        }
+        /* ---------- LETTER ---------- */
+        
+        #letterWrap {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(8, 8, 20, 0.7);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .6s, visibility .6s;
+        }
+        
+        #letterWrap.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .paper {
+            position: relative;
+            width: min(560px, 100%);
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: clamp(28px, 6vw, 48px) clamp(24px, 6vw, 46px);
+            background: repeating-linear-gradient(to bottom, transparent 0, transparent 35px, rgba(150, 110, 60, 0.14) 35px, rgba(150, 110, 60, 0.14) 36px), var(--paper);
+            color: var(--ink);
+            border-radius: 6px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+            transform: translateY(40px) rotate(-1.2deg);
+            transition: transform .8s cubic-bezier(.2, .9, .3, 1);
+        }
+        
+        #letterWrap.open .paper {
+            transform: translateY(0) rotate(-0.4deg);
+        }
+        
+        .paper .line {
+            font: 500 clamp(22px, 4.6vw, 27px)/36px "Caveat", cursive;
+            margin: 0;
+            opacity: 0;
+        }
+        
+        .paper .gap {
+            height: 36px;
+        }
+        
+        .paper .sign {
+            text-align: right;
+            font-weight: 700;
+        }
+        
+        #revealWrap {
+            text-align: center;
+            margin-top: 34px;
+        }
+        
+        #revealBtn {
+            padding: 12px 28px;
+            font: 700 20px "Caveat", cursive;
+            color: var(--seed);
+            background: var(--gold);
+            border: 0;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform .2s, background .2s;
+        }
+        
+        #revealBtn:hover {
+            background: #ffd866;
+            transform: scale(1.05);
+        }
+        
+        #revealBtn.hidden {
+            display: none;
+        }
+        
+        #revealContent {
+            display: none;
+        }
+        
+        #revealContent.shown {
+            display: block;
+        }
+        
+        #mainQuestion {
+            font-family: "Caveat", cursive;
+            font-size: clamp(26px, 5.5vw, 34px);
+            color: var(--ink);
+            opacity: 0;
+            margin-bottom: 4px;
+        }
+        
+        #mainQuestion.show {
+            animation: fadeIn .9s ease forwards;
+        }
+        
+        #beforeWrap {
+            margin-top: 22px;
+            opacity: 0;
+        }
+        
+        #beforeWrap.show {
+            animation: fadeIn .9s ease forwards;
+        }
+        
+        #beforeLabel {
+            font-family: "Caveat", cursive;
+            font-size: 20px;
+            color: var(--amber);
+            margin-bottom: 10px;
+        }
+        
+        #beforeText p {
+            font-family: "Caveat", cursive;
+            font-size: 22px;
+            line-height: 1.4;
+            color: var(--ink);
+            margin-bottom: 6px;
+            opacity: 0;
+        }
+        
+        #beforeText p.show {
+            animation: fadeIn .8s ease forwards;
+        }
+        
+        #questionButtons {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            min-height: 60px;
+            margin-top: 26px;
+            opacity: 0;
+        }
+        
+        #questionButtons.show {
+            animation: fadeIn .9s ease forwards;
+        }
+        
+        #questionButtons button {
+            padding: 12px 26px;
+            font: 700 18px "Fraunces", serif;
+            border: 0;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform .2s, background .2s;
+        }
+        
+        #yesBtn {
+            color: #fff;
+            background: var(--amber);
+        }
+        
+        #yesBtn:hover {
+            background: var(--gold);
+            transform: scale(1.05);
+        }
+        
+        #noBtn {
+            color: var(--ink);
+            background: #e8dcc0;
+            position: relative;
+            transition: transform .15s ease, left .15s ease, top .15s ease;
+        }
+        
+        #noBtn.dodging {
+            position: absolute;
+        }
+        
+        #questionAnswer {
+            margin-top: 18px;
+            font-family: "Caveat", cursive;
+            font-size: 24px;
+            color: var(--amber);
+            opacity: 0;
+        }
+        
+        #questionAnswer.show {
+            animation: fadeIn .8s ease forwards;
+        }
+        
+        #letterWrap.open .line {
+            animation: fadeIn 1s ease forwards;
+            animation-delay: var(--ld);
+        }
+        
+        #closeLetter {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font: 700 30px/1 "Fraunces", serif;
+            color: var(--ink);
+            background: none;
+            border: 0;
+            cursor: pointer;
+            padding: 6px 10px;
+            opacity: .6;
+        }
+        
+        #closeLetter:hover {
+            opacity: 1;
+        }
+        
+        #closeLetter:focus-visible {
+            outline: 3px solid var(--amber);
+        }
+        /* ---------- Timeline button ---------- */
+        
+        #timelineBtn {
+            position: fixed;
+            left: 50%;
+            bottom: 4vh;
+            z-index: 10;
+            transform: translate(calc(-50% + 150px), 30px);
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            font: 700 22px "Caveat", cursive;
+            color: var(--seed);
+            background: var(--paper);
+            border: 0;
+            border-radius: 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+            cursor: pointer;
+            transition: opacity 1s, transform 1s;
+        }
+        
+        #timelineBtn.ready {
+            opacity: 1;
+            transform: translate(calc(-50% + 150px), 0);
+            pointer-events: auto;
+        }
+        
+        #timelineBtn:hover {
+            background: #fff;
+        }
+        
+        #timelineBtn:focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 4px;
+        }
+        
+        #timelineBtn svg {
+            width: 22px;
+            height: 22px;
+        }
+        /* keep the letter button centered-left of it */
+        
+        #envelope.ready {
+            transform: translate(calc(-50% - 150px), 0);
+        }
+        
+        #envelope {
+            transform: translate(calc(-50% - 150px), 30px);
+        }
+        /* ---------- Timeline overlay ---------- */
+        
+        #timelineWrap {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(8, 8, 20, 0.75);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .6s, visibility .6s;
+        }
+        
+        #timelineWrap.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .tl-panel {
+            position: relative;
+            width: min(600px, 100%);
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: clamp(28px, 6vw, 44px);
+            background: var(--paper);
+            color: var(--ink);
+            border-radius: 14px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+            transform: translateY(40px);
+            transition: transform .7s cubic-bezier(.2, .9, .3, 1);
+        }
+        
+        #timelineWrap.open .tl-panel {
+            transform: translateY(0);
+        }
+        
+        .tl-heading {
+            font-family: "Caveat", cursive;
+            font-size: clamp(26px, 5vw, 32px);
+            text-align: center;
+            margin-bottom: 22px;
+            color: var(--seed);
+        }
+        
+        #closeTimeline {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font: 700 30px/1 "Fraunces", serif;
+            color: var(--ink);
+            background: none;
+            border: 0;
+            cursor: pointer;
+            padding: 6px 10px;
+            opacity: .6;
+        }
+        
+        #closeTimeline:hover {
+            opacity: 1;
+        }
+        
+        #closeTimeline:focus-visible {
+            outline: 3px solid var(--amber);
+        }
+        
+        .tl-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px dashed rgba(61, 36, 16, 0.25);
+        }
+        
+        .tl-item:last-child {
+            border-bottom: 0;
+        }
+        
+        .tl-item img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            flex-shrink: 0;
+        }
+        
+        .tl-text {
+            align-self: center;
+        }
+        
+        .tl-date {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--amber);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+        }
+        
+        .tl-caption {
+            font-family: "Caveat", cursive;
+            font-size: 21px;
+            line-height: 1.3;
+        }
+        
+        #timelineBtn {
+            position: fixed;
+            left: 50%;
+            bottom: 4vh;
+            z-index: 10;
+            transform: translate(calc(-50% + 150px), 30px);
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            font: 700 22px "Caveat", cursive;
+            color: var(--seed);
+            background: var(--paper);
+            border: 0;
+            border-radius: 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+            cursor: pointer;
+            transition: opacity 1s, transform 1s;
+        }
+        
+        #timelineBtn.ready {
+            opacity: 1;
+            transform: translate(calc(-50% + 150px), 0);
+            pointer-events: auto;
+        }
+        
+        #timelineBtn:hover {
+            background: #fff;
+        }
+        
+        #timelineBtn:focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 4px;
+        }
+        
+        #timelineBtn svg {
+            width: 22px;
+            height: 22px;
+        }
+        
+        #envelope.ready {
+            transform: translate(calc(-50% - 150px), 0);
+        }
+        
+        #envelope {
+            transform: translate(calc(-50% - 150px), 30px);
+        }
+        /* Falling petals */
+        
+        #confetti {
+            position: fixed;
+            inset: 0;
+            z-index: 25;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        /* Falling sunflower petals */
+        
+        #confetti {
+            position: fixed;
+            inset: 0;
+            z-index: 25;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .petal {
+            position: absolute;
+            top: -40px;
+            width: 16px;
+            height: 26px;
+            opacity: 0;
+            animation: petalFall linear forwards;
+        }
+        
+        .petal svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        @keyframes petalFall {
+            0% {
+                opacity: 0;
+                transform: translate(0, 0) rotate(0deg);
+            }
+            6% {
+                opacity: 1;
+            }
+            92% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--drift), 100vh) rotate(var(--spin));
+            }
+            0% {
+                opacity: 0;
+                transform: translate(0, 0) rotate(0deg);
+            }
+            6% {
+                opacity: 1;
+            }
+            92% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--drift), 100vh) rotate(var(--spin));
+            }
+        }
+        
+        @keyframes petalFall {
+            0% {
+                opacity: 0;
+                transform: translate(0, 0) rotate(0deg);
+            }
+            8% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--drift), 100vh) rotate(var(--spin));
+            }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01s !important;
+                animation-delay: 0s !important;
+                transition-duration: .01s !important;
+            }
+        }
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Passcode -->
+    <div id="lock">
+        <div id="confetti"></div>
+        <div id="polaroids"></div>
+        <div class="lock-card" id="lockCard">
+            <h1 id="lockTitle"></h1>
+            <p class="hint" id="lockHint"></p>
+            <input id="code" type="password" inputmode="numeric" autocomplete="off" maxlength="20" aria-label="Passcode" placeholder="••••">
+            <button id="unlock" type="button">Open</button>
+            <div id="error" role="alert"></div>
+        </div>
+    </div>
+
+    <!-- Garden -->
+    <div id="scene">
+        <div class="moon"></div>
+        <div id="garden"></div>
+        <div class="ground"></div>
+    </div>
+
+    <button id="envelope" type="button">
+  <svg viewBox="0 0 30 22" fill="none" stroke="#3d2410" stroke-width="2" stroke-linejoin="round"><rect x="1" y="1" width="28" height="20" rx="2"/><path d="M1 3l14 10L29 3"/></svg>
+  <span>read this (❁´◡`❁)</span>
+  <button id="timelineBtn" type="button">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#3d2410" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+  <span>Pieces of us</span>
+</button>
+
+    <!-- Letter -->
+    <div id="letterWrap" aria-hidden="true">
+        <div class="paper" role="dialog" aria-label="Letter">
+            <button id="closeLetter" type="button" aria-label="Close letter">&times;</button>
+            <div id="letterBody"></div>
+            <div id="revealWrap">
+                <button id="revealBtn" type="button">tap to reveal 🌻</button>
+
+                <div id="revealContent">
+                    <p id="mainQuestion"></p>
+
+                    <div id="beforeWrap">
+                        <p id="beforeLabel">before you answer that...</p>
+                        <div id="beforeText"></div>
+                    </div>
+
+                    <div id="questionButtons">
+                        <button id="yesBtn" type="button">Yes</button>
+                        <button id="noBtn" type="button">No</button>
+                    </div>
+                    <p id="questionAnswer"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="timelineWrap" aria-hidden="true">
+        <div class="tl-panel" role="dialog" aria-label="Our memories">
+            <button id="closeTimeline" type="button" aria-label="Close">&times;</button>
+            <h2 class="tl-heading">Our little timeline</h2>
+            <div id="timelineTrack"></div>
+        </div>
+    </div>
+
+    <audio id="music" src="sagip.mp3" loop preload="auto"></audio>
+    <script>
+        emailjs.init("Ue2opfwYB1-V5rFwu");
+        const CONFIG = {
+            passcode: "1578",
+            title: "wear ur signature headphones muna",
+            hint: "Guess the passcode",
+
+
+            letter: [
+                "Dear Claire,",
+                "",
+                "I planted these sunflowers for you because",
+                "they always turn toward the light, and",
+                "you are that for me.",
+                "",
+                "I was actually surprised when I found out that you love sunflowers too. I don’t know why, but when you told me, it made me smile because somehow, sunflowers already reminded me of you even before I knew they were your favorite.",
+                "",
+                "I don’t know exactly how to explain it, but the moment I saw them, I immediately thought of you. Sunflowers are bright, warm, and joyful, and somehow, they remind me of the way you are. You have this kind of happiness that makes everything feel a little lighter just by being around. Your smile especially—it’s so innocent and genuine, and somehow, seeing it can instantly make my day better. Even when I’m tired or not feeling my best, your smile has a way of making everything feel a little easier.",
+                "",
+                "I think that’s why I wanted to give these to you. They’re beautiful, but more than that, they remind me of someone who brings a little brightness into my days without even trying.",
+                "",
+                "Little by little, I started getting more comfortable talking to you. At first, I was honestly shy because, to me, a girl like you felt like someone I could only dream of meeting. I didn’t really know how to act or what to say because I genuinely thought you were someone special. I was scared I might say something wrong or make things awkward, but as time passed, I realized I didn’t have to pretend to be anyone else around you.",
+                "",
+                "As I got to know you more, I started noticing all these little things about you. I find it really cute how you can cry over the smallest things. Maybe they seem small to other people, but seeing how emotional you can get is honestly adorable to me. It shows how much you care, and I really love seeing that softer side of you.",
+                "",
+                "And I don’t think I’ll ever forget the day we watched Four Sisters and a Wedding together. I really loved that moment when your hands were playing with my hair. NYAKKKKKKKKHAHAHAHAHAHA",
+                "It was such a simple and quiet moment, but I felt really comfortable and happy just being beside you. It’s one of those little moments that might not seem like much, but it stayed with me.",
+                "",
+                "And honestly, I’ve been writing this little by little every day since the day we watched Four Sisters and a Wedding. Every day, I’d think of another little thing I wanted to say about you, another moment that made me smile, or another reason why I’m glad I got to know you.",
+                "THANKYOU TUTAY ABD TROY BEST WINGMAN TALAGA HAHAHAHAHA",
+                "",
+                "And as time passed, I feel like we’ve been getting closer and closer to each other. We’ve gotten to know each other enough that we already understand the things we don’t want in a relationship, and I really appreciate that we can talk about those things openly. I also still think about our little promise to make u my number 1 friend on my friend’s track on Jockie Music Bot. It might sound random, but those little promises mean a lot to me bc for me promises are important and I really want to keep them. Sana ikaw din.",
+                "",
+                "We also got to go to the gym together with Jared, and I really enjoyed spending that time with you. And one of the moments na really made me happy was when you met my Lola. Seeing you meet her and knowing na she really likes you made me genuinely happy. U also told me na it's your first time na mapakilala ka sa family ng iba and I feel really treasured that you trusted me enough to let me introduce you to my family.",
+                "",
+                "And recently, I feel like we’ve gotten even closer. We’ve gotten to the point na kaya ko nang maging weird and completely myself around you without feeling embarrassed. Kaya ko nang sabihin sa’yo na nami-miss kita without overthinking it. And seeing you get comfortable enough to lay your head on my shoulder and hold my hand honestly makes me really happy. Those little things might seem simple, pero for me, they mean a lot because they show how comfortable and close we’ve become.",
+                "",
+                "So, these sunflowers are for you. Hindi lang because they’re beautiful, but because whenever I see them, I think of you—your smile, your happiness, your soft heart, and all the little things about you that I’ve come to appreciate.",
+                "",
+                "And right now, I can finally say na gusto talaga kita. I want to know more about you, learn more about you, and discover everything you like, even the smallest things. I want to understand you better, know what makes you happy, what makes you sad, what you love, and even the things you don't usually tell other people. I don't just want to know the good things about you, I also want to understand the parts of you that you might find difficult to show. I want to get to know you for who you really are, and I'm willing to take my time doing that.",
+                "",
+                "There's also something I've been wanting to ask you. Lately, people have been asking me, 'Ano ba kayo?'' and honestly, I never really know what to answer. Just the other day, Theo asked me kung girlfriend ba kita. I answered na hindi, kasi wala naman talaga tayong label or anything between us yet. And it got me thinking about what I really want with you.",
+                "",
+                "I don't want to keep answering those questions without knowing where we're heading. Kaya I want to ask you something",
+
+
+                ""
+            ],
+            signature: "Love, Makmak 🐔",
+            mainQuestion: "Pwede ba kita ligawan?",
+            beforeAnswerText: [
+                "I know this might catch you off guard,",
+                "but I've thought about this a lot.",
+                "You make me want to be a better person,",
+                "and I'd really like the chance to show you that.",
+                "I know you told me before na you have strict parents, that you're avoidant, and that there are certain sides of you that I might not like or might find difficult to understand. But honestly, I'm willing to face those things with you. I know that liking someone isn't just about appreciating their good qualities. It's also about understanding their flaws, respecting their boundaries, and being patient with them. I don't expect everything to be easy, and I don't expect you to change just for me. I just want to understand you better and learn how to handle things together.",
+                "I know I still have a lot to learn about you, and I'm not saying that I can handle everything perfectly. But I'm willing to try, to listen, and to understand you even when things get difficult. I want to show you that my intentions are genuine and that I'm serious about getting to know you.",
+                "I don't want to rush you or make you feel pressured to give me an answer right away. I just want you to know how I genuinely feel about you and what I want us to become. Whatever your answer may be, I hope you know that I really appreciate everything we've shared so far.",
+            ],
+            memories: [{
+                date: "September 14, 2026",
+                photo: "CLAIREEEE/una4.jpg",
+                caption: "Unang kita ko sayo ng malapitan > <"
+            }, {
+                date: "September 15, 2026",
+                photo: "CLAIREEEE/una1.jpg",
+                caption: "Our first photo together"
+            }, {
+                date: "September 17, 2026",
+                photo: "CLAIREEEE/una3.jpg",
+                caption: "HAHAHHAHA idk basta super close ko sayo here"
+            }, {
+                date: "September 17, 2026",
+                photo: "CLAIREEEE/una2.jpg",
+                caption: "cute mo here hehe tolog sha"
+            }, {
+                date: "September 21, 2026",
+                photo: "CLAIREEEE/opo6.jpg",
+                caption: "Still my favorite person"
+            }, {
+                date: "September 26, 2026",
+                photo: "CLAIREEEE/photobooth.jpg",
+                caption: "OUR FIRST PHOTOBOOTH TOGETHER >.<"
+            }, {
+                date: "September 28, 2026",
+                photo: "CLAIREEEE/helmet1.jpg",
+                caption: "hehehee ewan"
+
+            }]
+
+        };
+
+        /* ===================================================== */
+
+        const $ = (id) => document.getElementById(id);
+
+        $("lockTitle").textContent = CONFIG.title;
+        $("lockHint").textContent = CONFIG.hint;
+
+        /* ---------- Build letter ---------- */
+        (function buildLetter() {
+            const body = $("letterBody");
+            let i = 0;
+            CONFIG.letter.forEach((text) => {
+                if (text === "") {
+                    const g = document.createElement("div");
+                    g.className = "gap";
+                    body.appendChild(g);
+                } else {
+                    const p = document.createElement("p");
+                    p.className = "line";
+                    p.textContent = text;
+                    p.style.setProperty("--ld", (0.5 + i * 0.35) + "s");
+                    body.appendChild(p);
+                    i++;
+                }
+            });
+            const s = document.createElement("p");
+            s.className = "line sign";
+            s.textContent = CONFIG.signature;
+            s.style.setProperty("--ld", (0.5 + i * 0.35 + 0.4) + "s");
+            body.appendChild(s);
+        })();
+        (function buildTimeline() {
+            const track = $("timelineTrack");
+            CONFIG.memories.forEach((m) => {
+                const row = document.createElement("div");
+                row.className = "tl-item";
+                row.innerHTML = `
+      <img src="${m.photo}" alt="">
+      <div class="tl-text">
+        <div class="tl-date">${m.date}</div>
+        <div class="tl-caption">${m.caption}</div>
+      </div>`;
+                track.appendChild(row);
+            });
+        })();
+        /* ---------- Staged reveal question ---------- */
+        document.getElementById("mainQuestion").textContent = CONFIG.mainQuestion;
+
+        const beforeTextBox = document.getElementById("beforeText");
+        CONFIG.beforeAnswerText.forEach((line) => {
+            const p = document.createElement("p");
+            p.textContent = line;
+            beforeTextBox.appendChild(p);
+        });
+
+        $("revealBtn").addEventListener("click", () => {
+            $("revealBtn").classList.add("hidden");
+            const content = $("revealContent");
+            content.classList.add("shown");
+
+            const question = $("mainQuestion");
+            const beforeWrap = $("beforeWrap");
+            const beforeParas = beforeTextBox.querySelectorAll("p");
+            const btnBox = $("questionButtons");
+
+            setTimeout(() => question.classList.add("show"), 100);
+
+            setTimeout(() => {
+                beforeWrap.classList.add("show");
+                beforeParas.forEach((p, i) => {
+                    setTimeout(() => p.classList.add("show"), i * 500);
+                });
+            }, 1400);
+
+            const btnDelay = 1400 + beforeParas.length * 500 + 600;
+            setTimeout(() => btnBox.classList.add("show"), btnDelay);
+        });
+
+        const noBtn = $("noBtn");
+        const yesBtn = $("yesBtn");
+        const btnBox2 = $("questionButtons");
+        const answer = $("questionAnswer");
+
+        noBtn.addEventListener("click", () => {
+            btnBox2.style.display = "none";
+            answer.textContent = "That's okay. Thank you for being honest with me. 💛";
+            answer.classList.add("show");
+
+            emailjs.send("service_vvwn7kp", "template_8ytnc2l", {
+                answer: "She said NO.",
+                from_name: "Claire"
+            }).then(() => {
+                console.log("Email sent!");
+            }).catch((err) => {
+                console.log("Email failed:", err);
+            });
+        });
+
+        yesBtn.addEventListener("click", () => {
+            btnBox2.style.display = "none";
+            answer.textContent = "IH HAHAHAHAHAHA";
+            answer.classList.add("show");
+
+            emailjs.send("service_vvwn7kp", "template_8ytnc2l", {
+                answer: "She said YES! 🌻",
+                from_name: "Claire"
+            }).then(() => {
+                console.log("Email sent!");
+            }).catch((err) => {
+                console.log("Email failed:", err);
+            });
+        });
+
+        /* ---------- Sunflower head (SVG) ---------- */
+        function sunflowerSVG() {
+            const petals = (count, rx, ry, cy, fill, offset) => {
+                let out = "";
+                for (let i = 0; i < count; i++) {
+                    const a = (360 / count) * i + offset;
+                    out += `<ellipse cx="100" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" transform="rotate(${a} 100 100)"/>`;
+                }
+                return out;
+            };
+            // seeds arranged in a golden-angle spiral
+            let seeds = "";
+            const golden = Math.PI * (3 - Math.sqrt(5));
+            for (let i = 1; i < 150; i++) {
+                const r = 2.25 * Math.sqrt(i);
+                const a = i * golden;
+                const x = 100 + r * Math.cos(a);
+                const y = 100 + r * Math.sin(a);
+                seeds += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.1 + r / 40).toFixed(2)}" fill="${i % 3 ? "#6b3e1b" : "#241206"}"/>`;
+            }
+            return `
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="core" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#5a3517"/>
+        <stop offset="100%" stop-color="#2a1608"/>
+      </radialGradient>
+    </defs>
+    ${petals(18, 12, 36, 42, "#f29f05", 0)}
+    ${petals(18, 11, 34, 45, "#ffc93c", 10)}
+    <circle cx="100" cy="100" r="34" fill="url(#core)"/>
+    ${seeds}
+    <circle cx="100" cy="100" r="34" fill="none" stroke="#e08a00" stroke-width="2" opacity=".7"/>
+  </svg>`;
+        }
+
+        /* ---------- Garden ---------- */
+        const FLOWERS = [{
+            x: "10%",
+            h: "34vh",
+            s: "clamp(70px, 13vmin, 130px)",
+            d: 1.6
+        }, {
+            x: "27%",
+            h: "50vh",
+            s: "clamp(95px, 18vmin, 180px)",
+            d: 0.9
+        }, {
+            x: "50%",
+            h: "62vh",
+            s: "clamp(120px, 23vmin, 230px)",
+            d: 0.2
+        }, {
+            x: "73%",
+            h: "48vh",
+            s: "clamp(95px, 18vmin, 180px)",
+            d: 1.2
+        }, {
+            x: "90%",
+            h: "32vh",
+            s: "clamp(70px, 13vmin, 130px)",
+            d: 1.9
+        }, ];
+
+        (function buildGarden() {
+            const garden = $("garden");
+            const svg = sunflowerSVG();
+            FLOWERS.forEach((f) => {
+                const el = document.createElement("div");
+                el.className = "sunflower";
+                el.style.cssText = `--x:${f.x};--h:${f.h};--s:${f.s};--d:${f.d}s`;
+                el.innerHTML = `
+      <div class="stem"></div>
+      <div class="leaf r" style="bottom:30%;--ld:1.0s;--rot:-25deg"></div>
+      <div class="leaf l" style="bottom:46%;--ld:1.3s;--rot:25deg"></div>
+      <div class="leaf r" style="bottom:14%;--ld:0.8s;--rot:-15deg"></div>
+      <div class="head">${svg}</div>`;
+                garden.appendChild(el);
+            });
+
+            // stars
+            const scene = $("scene");
+            for (let i = 0; i < 60; i++) {
+                const s = document.createElement("div");
+                s.className = "star";
+                s.style.left = Math.random() * 100 + "%";
+                s.style.top = Math.random() * 55 + "%";
+                s.style.setProperty("--t", (Math.random() * 3).toFixed(2) + "s");
+                scene.appendChild(s);
+            }
+            // fireflies
+            for (let i = 0; i < 18; i++) {
+                const s = document.createElement("div");
+                s.className = "fly";
+                s.style.left = 5 + Math.random() * 90 + "%";
+                s.style.top = 45 + Math.random() * 45 + "%";
+                s.style.setProperty("--dx", (Math.random() * 80 - 40).toFixed(0) + "px");
+                s.style.setProperty("--dur", (6 + Math.random() * 6).toFixed(1) + "s");
+                s.style.setProperty("--fd", (3 + Math.random() * 6).toFixed(1) + "s");
+                scene.appendChild(s);
+            }
+        })();
+
+        /* ---------- Passcode ---------- */
+        const input = $("code");
+        const error = $("error");
+
+        function tryUnlock() {
+            const entered = input.value.trim().toLowerCase();
+            if (entered === CONFIG.passcode.trim().toLowerCase()) {
+                error.textContent = "";
+                $("lock").classList.add("open");
+                const petalColors = ["#ffc93c", "#f29f05", "#ffdd7a", "#e08a00"];
+                const box = document.getElementById("confetti");
+                for (let i = 0; i < 40; i++) {
+                    const p = document.createElement("div");
+                    p.className = "petal";
+                    const color = petalColors[Math.floor(Math.random() * petalColors.length)];
+                    p.innerHTML = `<svg viewBox="0 0 20 32" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 C16 6 18 16 14 26 C12 30 8 30 6 26 C2 16 4 6 10 0 Z" fill="${color}"/></svg>`;
+                    p.style.left = Math.random() * 100 + "%";
+                    p.style.setProperty("--drift", (Math.random() * 220 - 110).toFixed(0) + "px");
+                    p.style.setProperty("--spin", (Math.random() * 540 - 270).toFixed(0) + "deg");
+                    p.style.animationDelay = (Math.random() * 1.5) + "s";
+                    p.style.animationDuration = (7 + Math.random() * 5) + "s";
+                    box.appendChild(p);
+                }
+                setTimeout(() => box.innerHTML = "", 14000);
+
+
+                setTimeout(() => box.innerHTML = "", 6000);
+                $("music").volume = 0.6;
+                $("music").play().catch(() => {});
+                $("scene").classList.add("show");
+                setTimeout(() => {
+                    $("envelope").classList.add("ready");
+                    $("timelineBtn").classList.add("ready");
+                }, 6500);
+            } else {
+                error.textContent = "ENGKKK MALI YAN HAHAHAHAHA";
+                const card = $("lockCard");
+                card.classList.remove("shake");
+                void card.offsetWidth;
+                card.classList.add("shake");
+                input.select();
+            }
+        }
+        $("unlock").addEventListener("click", tryUnlock);
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") tryUnlock();
+        });
+        input.focus();
+
+        /* ---------- Letter open / close ---------- */
+        const wrap = $("letterWrap");
+
+        function openLetter() {
+            wrap.classList.add("open");
+            wrap.setAttribute("aria-hidden", "false");
+            $("closeLetter").focus();
+        }
+
+        function closeLetter() {
+            wrap.classList.remove("open");
+            wrap.setAttribute("aria-hidden", "true");
+            $("envelope").focus();
+        }
+        $("envelope").addEventListener("click", openLetter);
+        const timelineWrap = $("timelineWrap");
+
+        function openTimeline() {
+            timelineWrap.classList.add("open");
+            timelineWrap.setAttribute("aria-hidden", "false");
+            $("closeTimeline").focus();
+        }
+
+        function closeTimeline() {
+            timelineWrap.classList.remove("open");
+            timelineWrap.setAttribute("aria-hidden", "true");
+            $("timelineBtn").focus();
+        }
+        $("timelineBtn").addEventListener("click", openTimeline);
+        $("closeTimeline").addEventListener("click", closeTimeline);
+        timelineWrap.addEventListener("click", (e) => {
+            if (e.target === timelineWrap) closeTimeline();
+        });
+        $("closeLetter").addEventListener("click", closeLetter);
+        wrap.addEventListener("click", (e) => {
+            if (e.target === wrap) closeLetter();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeLetter();
+        });
+        /* ---------- Scattered photos on the lock screen ---------- */
+        (function scatterPhotos() {
+            const PHOTOS = [
+                "CLAIREEEE/opo1.jpg",
+                "CLAIREEEE/opo2.jpg",
+                "CLAIREEEE/opo3.jpg",
+                "CLAIREEEE/opo4.jpg",
+                "CLAIREEEE/opo5.jpg",
+                "CLAIREEEE/opo6.jpg",
+                "CLAIREEEE/opo7.jpg",
+                "CLAIREEEE/opo10.png",
+                "CLAIREEEE/opo11.png",
+                "CLAIREEEE/opo8.jpg",
+                "CLAIREEEE/opo9.jpg",
+                "CLAIREEEE/opo12.jpg",
+                "CLAIREEEE/una3.jpg",
+            ];
+            const layer = $("polaroids");
+            const card = $("lockCard").getBoundingClientRect();
+            const W = window.innerWidth,
+                H = window.innerHeight;
+            const size = Math.max(60, Math.min(130, W * 0.13));
+            const h = size * 4 / 3;
+            const gap = 24;
+
+            const keepOut = {
+                l: card.left - gap,
+                r: card.right + gap,
+                t: card.top - gap,
+                b: card.bottom + gap
+            };
+            const overlaps = (a, b) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+            const placed = [];
+
+            PHOTOS.forEach((src, i) => {
+                for (let tries = 0; tries < 300; tries++) {
+                    const x = Math.random() * (W - size);
+                    const y = Math.random() * (H - h);
+                    const box = {
+                        l: x - 12,
+                        r: x + size + 12,
+                        t: y - 12,
+                        b: y + h + 12
+                    };
+                    if (overlaps(box, keepOut) || placed.some((p) => overlaps(box, p))) continue;
+                    placed.push(box);
+
+                    const img = document.createElement("img");
+                    img.className = "polaroid";
+                    img.src = src;
+                    img.alt = "";
+                    img.style.width = size + "px";
+                    img.style.left = x + "px";
+                    img.style.top = y + "px";
+                    img.style.transform = "rotate(" + (Math.random() * 24 - 12).toFixed(1) + "deg)";
+                    img.style.animationDelay = (i * 0.25) + "s";
+                    layer.appendChild(img);
+                    break;
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
